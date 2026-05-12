@@ -31,3 +31,7 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# Configurações locais de banco de dados
+application-mysql.properties
+application-h2.properties
