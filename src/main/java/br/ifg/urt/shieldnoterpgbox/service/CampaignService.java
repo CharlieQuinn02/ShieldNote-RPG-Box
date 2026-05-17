@@ -7,6 +7,9 @@ import java.util.logging.Logger;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import br.ifg.urt.shieldnoterpgbox.dto.request.CampaignRequestDTO;
+import br.ifg.urt.shieldnoterpgbox.dto.response.CampaignResponseDTO;
+import br.ifg.urt.shieldnoterpgbox.mapper.CampaignMapper;
 import br.ifg.urt.shieldnoterpgbox.model.Campaign;
 import br.ifg.urt.shieldnoterpgbox.repository.CampaignRepository;
 
@@ -15,49 +18,69 @@ public class CampaignService {
 
     private static final Logger logger = Logger.getLogger(CampaignService.class.getName());
 
-    // Injeção de dependência moderna via construtor com 'final'
     private final CampaignRepository repository;
+    private final CampaignMapper mapper; // njetando o Mapper
 
-    public CampaignService(CampaignRepository repository) {
+    public CampaignService(CampaignRepository repository, CampaignMapper mapper) {
         this.repository = repository;
+        this.mapper = mapper;
     }
 
     // Leitura não precisa de @Transactional
-    public List<Campaign> findAll() {
+    // Retorna uma lista de DTOs mapeada automaticamente
+    public List<CampaignResponseDTO> findAll() {
         logger.info("Buscando todas as campanhas no banco.");
-        return repository.findAll();
+        List<Campaign> campaigns = repository.findAll();
+        return mapper.toResponseDTOList(campaigns); // Uso do Mapper
     }
 
-    public Campaign findById(UUID id) {
+    // Busca no banco e já converte para ResponseDTO
+    public CampaignResponseDTO findById(UUID id) {
         logger.info("Buscando campanha no banco com ID: " + id);
-        return repository.findByIdOrThrow(id); // Usa o método inteligente do Repository
+        Campaign campaign = repository.findByIdOrThrow(id);
+        return mapper.toResponseDTO(campaign); // Uso do Mapper
     }
 
     @Transactional
-    public Campaign create(Campaign campaign) {
-        logger.info("Salvando nova campanha no banco: " + campaign.getTitulo());
-        return repository.save(campaign); // O JPA gera o ID e o SQL Insert automaticamente
+    public CampaignResponseDTO create(CampaignRequestDTO dto) {
+        logger.info("Salvando nova campanha no banco: " + dto.titulo());
+        
+        //  Converte RequestDTO -> Entity via Mapper
+        Campaign novaCampaign = mapper.toEntity(dto); 
+        
+        //  Preenche os campos obrigatórios do banco que o DTO não traz!
+        novaCampaign.setCriadaEm(java.time.LocalDateTime.now()); // Define a data/hora atual
+        novaCampaign.setStatus(br.ifg.urt.shieldnoterpgbox.enums.StatusEnum.ATIVA); // Inicia como ATIVA por padrão
+        
+        //  Salva a entidade totalmente preenchida
+        Campaign salva = repository.save(novaCampaign);
+        
+        //  Devolve o ResponseDTO com os metadados inclusos
+        return mapper.toResponseDTO(salva); 
     }
 
     @Transactional
-    public Campaign update(Campaign campaign) {
-        logger.info("Atualizando campanha ID: " + campaign.getId());
+    public CampaignResponseDTO update(UUID id, CampaignRequestDTO dto) {
+        logger.info("Atualizando campanha ID: " + id);
         
-        // Verifica se existe antes de atualizar
-        Campaign existing = repository.findByIdOrThrow(campaign.getId());
+        // verifica se existe antes de atualizar
+        Campaign existing = repository.findByIdOrThrow(id);
         
-        // Atualiza os dados
-        existing.setTitulo(campaign.getTitulo());
-        existing.setDescricao(campaign.getDescricao());
-        existing.setSistema(campaign.getSistema());
-        existing.setMaxJogadores(campaign.getMaxJogadores());
-        // (Adicione aqui os outros setters se necessário)
+        // tualiza os dados pegando do Record (lembrar que: records usam .campo() em vez de getCampo())
+        existing.setTitulo(dto.titulo());
+        existing.setDescricao(dto.descricao());
+        existing.setSistema(dto.sistema());
+        existing.setMaxJogadores(dto.maxJogadores());
         
-        return repository.save(existing);
+        Campaign atualizado = repository.save(existing);
+        
+        // Retorna a entidade atualizada como DTO
+        return mapper.toResponseDTO(atualizado);
     }
 
     @Transactional
     public void delete(UUID id) {
+        // para deletar, não precisa de Mapper
         logger.info("Removendo campanha ID: " + id);
         Campaign existing = repository.findByIdOrThrow(id);
         repository.delete(existing);
