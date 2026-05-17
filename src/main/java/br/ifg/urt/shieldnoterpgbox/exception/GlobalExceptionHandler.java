@@ -56,7 +56,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return new ResponseEntity<>(exceptionResponse, HttpStatus.BAD_REQUEST);
     }
 
-    // ratamento para recursos não encontrados (Ex: Campanha ou Nota inexistente)
+    // tratamento para recursos não encontrados (Ex: Campanha ou Nota inexistente)
     @ExceptionHandler(ResourceNotFoundException.class)
     public final ResponseEntity<ExceptionResponse> handleResourceNotFoundException(
             ResourceNotFoundException ex, WebRequest request) {
@@ -68,4 +68,18 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         
         return new ResponseEntity<>(exceptionResponse, HttpStatus.NOT_FOUND);
     }
+    
+ // Tratamento para as regras de negócio disparadas pelos Value Objects (VOs)
+    @ExceptionHandler(IllegalArgumentException.class)
+    public final ResponseEntity<ExceptionResponse> handleIllegalArgumentException(
+            IllegalArgumentException ex, WebRequest request) {
+        
+        ExceptionResponse exceptionResponse = new ExceptionResponse(
+                LocalDateTime.now(),
+                "Regra de negócio violada",
+                ex.getMessage()); // Vai devolver a  mensagem do VO ("O máximo de jogadores não pode...")
+
+        return new ResponseEntity<>(exceptionResponse, HttpStatus.BAD_REQUEST);
+    }
+    
 }

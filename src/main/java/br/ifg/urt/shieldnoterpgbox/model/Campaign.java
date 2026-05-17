@@ -5,7 +5,9 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 import br.ifg.urt.shieldnoterpgbox.enums.StatusEnum;
+import br.ifg.urt.shieldnoterpgbox.model.vo.CapacidadeJogadores;
 import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -40,8 +42,9 @@ public class Campaign implements Serializable {
     @Column(nullable = false)
     private StatusEnum status;
     
-    @Column(nullable = false)
-    private int maxJogadores;
+    // Substituímos o maxJogadores primitivo pelo nosso VO
+    @Embedded
+    private CapacidadeJogadores capacidade;
     
     @Column(nullable = false)
     private LocalDateTime criadaEm;
@@ -71,8 +74,9 @@ public class Campaign implements Serializable {
     public StatusEnum getStatus() { return status; }
     public void setStatus(StatusEnum status) { this.status = status; }
     
-    public int getMaxJogadores() { return maxJogadores; }
-    public void setMaxJogadores(int maxJogadores) { this.maxJogadores = maxJogadores; }
+    // Getters e Setters do novo VO
+    public CapacidadeJogadores getCapacidade() { return capacidade; }
+    public void setCapacidade(CapacidadeJogadores capacidade) { this.capacidade = capacidade; }
     
     public LocalDateTime getCriadaEm() { return criadaEm; }
     public void setCriadaEm(LocalDateTime criadaEm) { this.criadaEm = criadaEm; }

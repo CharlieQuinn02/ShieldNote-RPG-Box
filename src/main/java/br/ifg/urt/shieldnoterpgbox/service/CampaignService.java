@@ -48,14 +48,14 @@ public class CampaignService {
         //  Converte RequestDTO -> Entity via Mapper
         Campaign novaCampaign = mapper.toEntity(dto); 
         
-        //  Preenche os campos obrigatórios do banco que o DTO não traz!
+        //  preenche os campos obrigatórios do banco que o DTO não traz
         novaCampaign.setCriadaEm(java.time.LocalDateTime.now()); // Define a data/hora atual
         novaCampaign.setStatus(br.ifg.urt.shieldnoterpgbox.enums.StatusEnum.ATIVA); // Inicia como ATIVA por padrão
         
-        //  Salva a entidade totalmente preenchida
+        //  salva a entidade totalmente preenchida
         Campaign salva = repository.save(novaCampaign);
         
-        //  Devolve o ResponseDTO com os metadados inclusos
+        //  devolve o ResponseDTO com os metadados inclusos
         return mapper.toResponseDTO(salva); 
     }
 
@@ -70,7 +70,7 @@ public class CampaignService {
         existing.setTitulo(dto.titulo());
         existing.setDescricao(dto.descricao());
         existing.setSistema(dto.sistema());
-        existing.setMaxJogadores(dto.maxJogadores());
+        existing.setCapacidade(new br.ifg.urt.shieldnoterpgbox.model.vo.CapacidadeJogadores(dto.maxJogadores(), dto.minJogadores()));
         
         Campaign atualizado = repository.save(existing);
         

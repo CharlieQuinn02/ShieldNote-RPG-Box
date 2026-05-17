@@ -25,7 +25,7 @@ public class EncounterController {
     @PostMapping("/calcular")
     public ResponseEntity<EncounterResponseDTO> calcularEncontro(@Valid @RequestBody EncounterRequestDTO dto) {
         
-        // Chamamos o método do seu EncounterCalculator passando o DTO que chegou
+        // chama o método EncounterCalculator passando o DTO que chegou
         EncounterResponseDTO resultado = calculatorService.calcularDificuldade(dto);
         
         return ResponseEntity.ok(resultado);
