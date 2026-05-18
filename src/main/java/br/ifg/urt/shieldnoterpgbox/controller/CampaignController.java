@@ -18,11 +18,16 @@ import org.springframework.web.bind.annotation.RestController;
 import br.ifg.urt.shieldnoterpgbox.dto.request.CampaignRequestDTO;
 import br.ifg.urt.shieldnoterpgbox.dto.response.CampaignResponseDTO;
 import br.ifg.urt.shieldnoterpgbox.service.CampaignService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
 @RestController
 @Validated
-@RequestMapping("/campaigns") // Rota base para campanhas
+@RequestMapping("/campaigns")
+@Tag(name = "Campanhas", description = "Endpoints para criação e gerenciamento de campanhas de RPG")
 public class CampaignController {
 
     private final CampaignService service;
@@ -31,37 +36,54 @@ public class CampaignController {
         this.service = service;
     }
 
-    // GET: Buscar todas retornando DTO e 200 OK
+    @Operation(summary = "Listar todas as campanhas", description = "Retorna uma lista contendo todas as campanhas cadastradas no banco de dados.")
+    @ApiResponse(responseCode = "200", description = "Lista recuperada com sucesso")
     @GetMapping
     public ResponseEntity<List<CampaignResponseDTO>> buscarTodos() {
         return ResponseEntity.ok(service.findAll());
     }
 
-    // GET: Buscar por ID retornando DTO e 200 OK
+    @Operation(summary = "Buscar campanha por ID", description = "Retorna os detalhes de uma campanha específica através do seu identificador único (UUID).")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Campanha encontrada com sucesso"),
+        @ApiResponse(responseCode = "404", description = "Campanha não encontrada no banco de dados"),
+        @ApiResponse(responseCode = "400", description = "Formato de UUID inválido na URL")
+    })
     @GetMapping("/{id}")
     public ResponseEntity<CampaignResponseDTO> buscarPorId(@PathVariable UUID id) {
         return ResponseEntity.ok(service.findById(id));
     }
 
-    // POST: Criar nova campanha retornando DTO e 201 Created
-    // O @Valid invoca as anotações do DTO (@NotBlank, @Min, etc)
+    @Operation(summary = "Criar nova campanha", description = "Cadastra uma nova campanha validando os limites de capacidade mínima e máxima de jogadores.")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "201", description = "Campanha criada com sucesso"),
+        @ApiResponse(responseCode = "400", description = "Erro de validação nos dados enviados (ex: mínimo maior que máximo)")
+    })
     @PostMapping
     public ResponseEntity<CampaignResponseDTO> criar(@Valid @RequestBody CampaignRequestDTO dto) {
         CampaignResponseDTO novo = service.create(dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(novo);
     }
 
-    // PUT: Atualizar campanha retornando DTO e 200 OK
+    @Operation(summary = "Atualizar campanha existente", description = "Atualiza os dados de uma campanha através do seu UUID.")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Campanha atualizada com sucesso"),
+        @ApiResponse(responseCode = "404", description = "Campanha não encontrada no banco de dados"),
+        @ApiResponse(responseCode = "400", description = "Erro de validação nos dados enviados")
+    })
     @PutMapping("/{id}")
     public ResponseEntity<CampaignResponseDTO> atualizar(
             @PathVariable UUID id, 
             @Valid @RequestBody CampaignRequestDTO dto) {
         
-        // Passamos o ID da URL e o DTO do corpo para o serviço
         return ResponseEntity.ok(service.update(id, dto));
     }
 
-    // DELETE: Remover campanha retornando 204 No Content
+    @Operation(summary = "Remover campanha", description = "Exclui permanentemente uma campanha do banco de dados pelo seu UUID.")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "204", description = "Campanha excluída com sucesso (sem conteúdo de retorno)"),
+        @ApiResponse(responseCode = "404", description = "Campanha não encontrada no banco de dados")
+    })
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletar(@PathVariable UUID id) {
         service.delete(id);
