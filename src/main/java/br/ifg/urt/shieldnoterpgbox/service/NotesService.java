@@ -10,7 +10,9 @@ import org.springframework.transaction.annotation.Transactional;
 import br.ifg.urt.shieldnoterpgbox.dto.request.NotesRequestDTO;
 import br.ifg.urt.shieldnoterpgbox.dto.response.NotesResponseDTO;
 import br.ifg.urt.shieldnoterpgbox.mapper.NotesMapper;
+import br.ifg.urt.shieldnoterpgbox.model.Campaign;
 import br.ifg.urt.shieldnoterpgbox.model.Notes;
+import br.ifg.urt.shieldnoterpgbox.repository.CampaignRepository;
 import br.ifg.urt.shieldnoterpgbox.repository.NotesRepository;
 
 @Service
@@ -19,22 +21,24 @@ public class NotesService {
     private static final Logger logger = Logger.getLogger(NotesService.class.getName());
 
     private final NotesRepository repository;
-    private final NotesMapper mapper; // Injetando o Mapper
+    private final CampaignRepository campaignRepository; 
+    private final NotesMapper mapper;
 
-    public NotesService(NotesRepository repository, NotesMapper mapper) {
+    
+    public NotesService(NotesRepository repository, CampaignRepository campaignRepository, NotesMapper mapper) {
         this.repository = repository;
+        this.campaignRepository = campaignRepository;
         this.mapper = mapper;
     }
 
     public List<NotesResponseDTO> findAll() {
         logger.info("Buscando todas as notas no banco.");
         List<Notes> notes = repository.findAll();
-        return mapper.toResponseDTOList(notes); // Converte a lista toda via Mapper
+        return mapper.toResponseDTOList(notes); 
     }
 
     public NotesResponseDTO findById(UUID id) {
         logger.info("Buscando nota com ID: " + id);
-        // Supondo que você use o .findById().orElseThrow() padrão do JPA
         Notes note = repository.findById(id).orElseThrow(() -> new RuntimeException("Nota não encontrada"));
         return mapper.toResponseDTO(note);
     }
@@ -43,16 +47,22 @@ public class NotesService {
     public NotesResponseDTO create(NotesRequestDTO dto) {
         logger.info("Salvando nova nota: " + dto.titulo());
         
-        //  Converte o DTO para a Entidade através do Mapper
+        //  busca a campanha no banco usando o ID que veio do DTO
+        Campaign campaign = campaignRepository.findById(dto.campaignId())
+                .orElseThrow(() -> new RuntimeException("Campanha não encontrada para vincular à nota. Verifique o ID."));
+        
+        //  Converte o DTO para a Entidade
         Notes novaNota = mapper.toEntity(dto);
         
-        //  Define a data/hora atual antes de enviar para o banco de dados
+        //  relacionamento jpa
+        novaNota.setCampaign(campaign);
+        
+        //  Define a data/hora atual
         novaNota.setCriadoEm(java.time.LocalDateTime.now());
         
-        // Salva a entidade com a data preenchida
+        //  Salva a entidade 
         Notes salva = repository.save(novaNota);
         
-        //  Retorna o ResponseDTO mapeado
         return mapper.toResponseDTO(salva);
     }
 
@@ -62,7 +72,8 @@ public class NotesService {
         
         Notes existing = repository.findById(id).orElseThrow(() -> new RuntimeException("Nota não encontrada"));
         
-        // Atualiza usando os métodos do Record (sem o "get")
+        
+        // como geralmente uma nota não muda de campanha, atualizamos apenas o texto
         existing.setTitulo(dto.titulo());
         existing.setCategoria(dto.categoria());
         existing.setVisibilidade(dto.visibilidade());

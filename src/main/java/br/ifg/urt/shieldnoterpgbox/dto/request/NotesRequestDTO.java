@@ -8,6 +8,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 public record NotesRequestDTO(
+    @NotNull UUID campaignId, // para o JPA achar a campanha no banco
     @NotNull UUID sessionId,
     @NotNull UUID authorId,
     @NotBlank String titulo,

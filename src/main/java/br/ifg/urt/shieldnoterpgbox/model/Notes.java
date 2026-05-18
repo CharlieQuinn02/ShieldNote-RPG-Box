@@ -18,6 +18,13 @@ public class Notes implements Serializable {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
     
+    
+    // RELACIONAMENTO JPA: N Notas para 1 Campanha
+   
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "campaign_id", nullable = false)
+    private Campaign campaign;
+    
     @Column(nullable = false)
     private UUID sessionId;
     
@@ -55,6 +62,15 @@ public class Notes implements Serializable {
 
     public void setId(UUID id) {
         this.id = id;
+    }
+
+    // Getters e Setters do relacionamento
+    public Campaign getCampaign() {
+        return campaign;
+    }
+
+    public void setCampaign(Campaign campaign) {
+        this.campaign = campaign;
     }
 
     public UUID getSessionId() {

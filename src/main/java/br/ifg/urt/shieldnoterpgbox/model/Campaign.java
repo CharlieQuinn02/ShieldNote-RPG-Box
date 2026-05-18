@@ -2,10 +2,13 @@ package br.ifg.urt.shieldnoterpgbox.model;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 import br.ifg.urt.shieldnoterpgbox.enums.StatusEnum;
 import br.ifg.urt.shieldnoterpgbox.model.vo.CapacidadeJogadores;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
@@ -14,6 +17,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import lombok.Data;
 
 @Entity
@@ -42,16 +46,21 @@ public class Campaign implements Serializable {
     @Column(nullable = false)
     private StatusEnum status;
     
-    // Substituímos o maxJogadores primitivo pelo nosso VO
+    // colocamos o VO
     @Embedded
     private CapacidadeJogadores capacidade;
     
     @Column(nullable = false)
     private LocalDateTime criadaEm;
 
+    
+    // RELACIONAMENTO JPA: 1 Campanha para N Notas
+    
+    @OneToMany(mappedBy = "campaign", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Notes> notes = new ArrayList<>();
+
     // Métodos de negócio
     public void pausar() { this.status = StatusEnum.PAUSADA; }
-    public boolean adicionarJogador() { return true; }
     public UUID iniciarSessao() { return UUID.randomUUID(); }
     public void encerrar() { this.status = StatusEnum.FINALIZADA; }
     
@@ -74,10 +83,14 @@ public class Campaign implements Serializable {
     public StatusEnum getStatus() { return status; }
     public void setStatus(StatusEnum status) { this.status = status; }
     
-    // Getters e Setters do novo VO
+    // Getters e Setters do novo vo
     public CapacidadeJogadores getCapacidade() { return capacidade; }
     public void setCapacidade(CapacidadeJogadores capacidade) { this.capacidade = capacidade; }
     
     public LocalDateTime getCriadaEm() { return criadaEm; }
     public void setCriadaEm(LocalDateTime criadaEm) { this.criadaEm = criadaEm; }
+
+    // Getters e Setters da Lista de Notas
+    public List<Notes> getNotes() { return notes; }
+    public void setNotes(List<Notes> notes) { this.notes = notes; }
 }
