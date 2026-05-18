@@ -1,9 +1,10 @@
 package br.ifg.urt.shieldnoterpgbox.dto.response;
 
-import br.ifg.urt.shieldnoterpgbox.enums.Dificuldade;
+import java.util.Map;
 
 public record EncounterResponseDTO(
-    Dificuldade dificuldade,
-    int xpTotal,
-    int xpAjustado
-) {}
+    String dificuldadeFinal,
+    int xpAjustado,
+    Map<String, Integer> limitesGrupo
+) {
+}
