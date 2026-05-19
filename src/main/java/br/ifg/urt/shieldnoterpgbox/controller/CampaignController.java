@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -88,5 +89,23 @@ public class CampaignController {
     public ResponseEntity<Void> deletar(@PathVariable UUID id) {
         service.delete(id);
         return ResponseEntity.noContent().build();
+    }
+    
+    @PatchMapping("/{id}/pausar")
+    public ResponseEntity<Void> pausar(@PathVariable UUID id) {
+        service.pausar(id); 
+        return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/{id}/encerrar")
+    public ResponseEntity<Void> encerrar(@PathVariable UUID id) {
+        service.encerrar(id); 
+        return ResponseEntity.noContent().build();
+    }
+    
+    @PostMapping("/{id}/iniciar-sessao")
+    public ResponseEntity<UUID> iniciarSessao(@PathVariable UUID id) {
+        UUID sessionId = service.iniciarSessao(id);
+        return ResponseEntity.ok(sessionId);
     }
 }

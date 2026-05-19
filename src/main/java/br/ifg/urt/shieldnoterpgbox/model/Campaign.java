@@ -93,4 +93,6 @@ public class Campaign implements Serializable {
     // Getters e Setters da Lista de Notas
     public List<Notes> getNotes() { return notes; }
     public void setNotes(List<Notes> notes) { this.notes = notes; }
+    
+    
 }

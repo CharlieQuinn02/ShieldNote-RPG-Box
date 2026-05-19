@@ -69,7 +69,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return new ResponseEntity<>(exceptionResponse, HttpStatus.NOT_FOUND);
     }
     
- // Tratamento para as regras de negócio disparadas pelos Value Objects (VOs)
+ // tratamento para as regras de negócio disparadas pelos Value Objects (VOs)
     @ExceptionHandler(IllegalArgumentException.class)
     public final ResponseEntity<ExceptionResponse> handleIllegalArgumentException(
             IllegalArgumentException ex, WebRequest request) {

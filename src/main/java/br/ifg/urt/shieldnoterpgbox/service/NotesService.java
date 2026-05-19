@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import br.ifg.urt.shieldnoterpgbox.dto.request.NotesRequestDTO;
 import br.ifg.urt.shieldnoterpgbox.dto.response.NotesResponseDTO;
+import br.ifg.urt.shieldnoterpgbox.exception.ResourceNotFoundException;
 import br.ifg.urt.shieldnoterpgbox.mapper.NotesMapper;
 import br.ifg.urt.shieldnoterpgbox.model.Campaign;
 import br.ifg.urt.shieldnoterpgbox.model.Notes;
@@ -70,15 +71,15 @@ public class NotesService {
     public NotesResponseDTO update(UUID id, NotesRequestDTO dto) {
         logger.info("Atualizando nota ID: " + id);
         
-        Notes existing = repository.findById(id).orElseThrow(() -> new RuntimeException("Nota não encontrada"));
+        Notes existing = repository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Nota não encontrada com o ID: " + id));
         
-        
-        // como geralmente uma nota não muda de campanha, atualizamos apenas o texto
-        existing.setTitulo(dto.titulo());
-        existing.setCategoria(dto.categoria());
-        existing.setVisibilidade(dto.visibilidade());
-        existing.setFixado(dto.isFixado());
-        existing.setConteudo(dto.conteudo());
+        existing.atualizarConteudo(
+                dto.titulo(), 
+                dto.conteudo(), 
+                dto.categoria(), 
+                dto.visibilidade()
+        );
         
         Notes atualizada = repository.save(existing);
         return mapper.toResponseDTO(atualizada);
@@ -90,4 +91,19 @@ public class NotesService {
         Notes existing = repository.findById(id).orElseThrow(() -> new RuntimeException("Nota não encontrada"));
         repository.delete(existing);
     }
+    
+    @Transactional
+    public NotesResponseDTO alternarFixacao(UUID id) {
+        logger.info("Alternando estado de fixação da nota ID: " + id);
+        
+        Notes existing = repository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Nota não encontrada com o ID: " + id));
+        
+        // inverte o boolean
+        existing.alternarFixacao();
+        
+        Notes atualizada = repository.save(existing);
+        return mapper.toResponseDTO(atualizada);
+    }
+    
 }

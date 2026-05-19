@@ -136,4 +136,14 @@ public class Notes implements Serializable {
     public void setCriadoEm(LocalDateTime criadoEm) {
         this.criadoEm = criadoEm;
     }
+    
+ 
+    public void atualizarConteudo(String novoTitulo, String novoConteudo, 
+                                  br.ifg.urt.shieldnoterpgbox.enums.PostItCat novaCategoria, 
+                                  br.ifg.urt.shieldnoterpgbox.enums.RoleEnum novaVisibilidade) {
+        this.titulo = novoTitulo;
+        this.conteudo = novoConteudo;
+        this.categoria = novaCategoria;
+        this.visibilidade = novaVisibilidade;
+    }
 }
