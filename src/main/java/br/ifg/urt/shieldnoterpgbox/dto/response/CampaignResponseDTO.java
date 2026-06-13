@@ -13,6 +13,6 @@ public record CampaignResponseDTO(
         StatusEnum status,
         Integer minJogadores,
         Integer maxJogadores,
-        String capacidadeDescricao, // novo campo vindo da lógica do VO
+        String capacidadeDescricao, // VO
         LocalDateTime criadaEm
 ) {}

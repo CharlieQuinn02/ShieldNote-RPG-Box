@@ -8,7 +8,13 @@ public class ResourceNotFoundException extends RuntimeException {
     
     private static final long serialVersionUID = 1L;
 
+    // apenas mensagem completa
     public ResourceNotFoundException(String message) {
         super(message);
+    }
+
+    // recebe nome e recurso
+    public ResourceNotFoundException(String resource, Object id) {
+        super(resource + " não encontrado com ID: " + id);
     }
 }

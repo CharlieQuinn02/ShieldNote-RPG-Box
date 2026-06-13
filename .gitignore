@@ -35,3 +35,13 @@ build/
 # Configurações locais de banco de dados
 application-mysql.properties
 application-h2.properties
+
+
+/target/
+.metadata/
+.settings/
+.classpath
+.project
+*.log
+.DS_Store
+.mvn/

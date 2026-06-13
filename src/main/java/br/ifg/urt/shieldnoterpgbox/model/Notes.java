@@ -18,9 +18,7 @@ public class Notes implements Serializable {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
     
-    
     // RELACIONAMENTO JPA: N Notas para 1 Campanha
-   
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "campaign_id", nullable = false)
     private Campaign campaign;
@@ -51,11 +49,26 @@ public class Notes implements Serializable {
     @Column(nullable = false)
     private LocalDateTime criadoEm;
 
-    // métodos de regra de negócio
-    public void atualizarConteudo() { /* Lógica futura */ }
-    public void alternarFixacao() { this.isFixado = !this.isFixado; }
+    
+    // MÉTODOS DE REGRA DE NEGÓCIO DO AGREGADO
+    
+    
+    // Método de atualização de conteúdo
+    public void atualizarConteudo(String novoTitulo, String novoConteudo, 
+                                  PostItCat novaCategoria, RoleEnum novaVisibilidade) {
+        this.titulo = novoTitulo;
+        this.conteudo = novoConteudo;
+        this.categoria = novaCategoria;
+        this.visibilidade = novaVisibilidade;
+    }
 
-    // getters e setters
+    public void alternarFixacao() { 
+        this.isFixado = !this.isFixado; 
+    }
+
+    
+    // GETTERS E SETTERS
+    
     public UUID getId() {
         return id;
     }
@@ -64,7 +77,6 @@ public class Notes implements Serializable {
         this.id = id;
     }
 
-    // Getters e Setters do relacionamento
     public Campaign getCampaign() {
         return campaign;
     }
@@ -135,15 +147,5 @@ public class Notes implements Serializable {
 
     public void setCriadoEm(LocalDateTime criadoEm) {
         this.criadoEm = criadoEm;
-    }
-    
- 
-    public void atualizarConteudo(String novoTitulo, String novoConteudo, 
-                                  br.ifg.urt.shieldnoterpgbox.enums.PostItCat novaCategoria, 
-                                  br.ifg.urt.shieldnoterpgbox.enums.RoleEnum novaVisibilidade) {
-        this.titulo = novoTitulo;
-        this.conteudo = novoConteudo;
-        this.categoria = novaCategoria;
-        this.visibilidade = novaVisibilidade;
     }
 }

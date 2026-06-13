@@ -1,15 +1,19 @@
 package br.ifg.urt.shieldnoterpgbox.service;
 
-import java.util.List;
+import java.time.LocalDateTime;
 import java.util.UUID;
-import java.util.logging.Logger;
 
+
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import br.ifg.urt.shieldnoterpgbox.dto.request.CampaignRequestDTO;
 import br.ifg.urt.shieldnoterpgbox.dto.response.CampaignResponseDTO;
-import br.ifg.urt.shieldnoterpgbox.exception.ResourceNotFoundException;
+import br.ifg.urt.shieldnoterpgbox.enums.StatusEnum;
 import br.ifg.urt.shieldnoterpgbox.mapper.CampaignMapper;
 import br.ifg.urt.shieldnoterpgbox.model.Campaign;
 import br.ifg.urt.shieldnoterpgbox.repository.CampaignRepository;
@@ -17,107 +21,102 @@ import br.ifg.urt.shieldnoterpgbox.repository.CampaignRepository;
 @Service
 public class CampaignService {
 
-    private static final Logger logger = Logger.getLogger(CampaignService.class.getName());
-
     private final CampaignRepository repository;
-    private final CampaignMapper mapper; // injetando o Mapper
+    private final CampaignMapper mapper;
 
+    // Construtor para injeção de dependências
     public CampaignService(CampaignRepository repository, CampaignMapper mapper) {
         this.repository = repository;
         this.mapper = mapper;
     }
 
-    
-    // Retorna uma lista de DTOs mapeada automaticamente
-    public List<CampaignResponseDTO> findAll() {
-        logger.info("Buscando todas as campanhas no banco.");
-        List<Campaign> campaigns = repository.findAll();
-        return mapper.toResponseDTOList(campaigns); // Uso do Mapper
+    // Paginação e filtro (Buscas dinâmicas não são cacheáveis por mudarem a todo momento)
+    public Page<CampaignResponseDTO> buscarTodas(String titulo, Pageable pageable) {
+        Page<Campaign> pagina;
+
+        if (titulo != null && !titulo.isBlank()) {
+            pagina = repository.findByTituloContainingIgnoreCase(titulo, pageable);
+        } else {
+            pagina = repository.findAll(pageable);
+        }
+
+        return pagina.map(mapper::toResponseDTO);
     }
 
-    // Busca no banco e já converte para ResponseDTO
+    
+    // MÉTODOS COM IMPLEMENTAÇÃO DE CACHE (Caffeine)
+    
+
+    // @Cacheable: Se a campanha já estiver na memória RAM, devolve direto poupando o banco.
+    @Cacheable(value = "campaigns", key = "#id")
     public CampaignResponseDTO findById(UUID id) {
-        logger.info("Buscando campanha no banco com ID: " + id);
-        Campaign campaign = repository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Campanha não encontrada com o ID: " + id));
-        return mapper.toResponseDTO(campaign); // Uso do Mapper
+        Campaign campaign = repository.findByIdOrThrow(id);
+        return mapper.toResponseDTO(campaign);
     }
 
-    @Transactional
+    // Criação da campanha (Inicia como ATIVA por padrão)
     public CampaignResponseDTO create(CampaignRequestDTO dto) {
-        logger.info("Salvando nova campanha no banco: " + dto.titulo());
+        Campaign campaign = mapper.toEntity(dto);
         
-        //  Converte RequestDTO -> Entity via Mapper
-        Campaign novaCampaign = mapper.toEntity(dto); 
+        campaign.setCriadaEm(LocalDateTime.now()); 
+        campaign.setStatus(StatusEnum.ATIVA);      
         
-        //  preenche os campos obrigatórios do banco que o DTO não traz
-        novaCampaign.setCriadaEm(java.time.LocalDateTime.now()); // Define a data e hora atual
-        novaCampaign.setStatus(br.ifg.urt.shieldnoterpgbox.enums.StatusEnum.ATIVA); // inicia como ativa por padrão
-        
-        //  salva a entidade totalmente preenchida
-        Campaign salva = repository.save(novaCampaign);
-        
-        //  devolve o ResponseDTO com os metadados inclusos
-        return mapper.toResponseDTO(salva); 
+        campaign = repository.save(campaign);
+        return mapper.toResponseDTO(campaign);
     }
 
-    @Transactional
+    // @CachePut: Atualiza o banco e sincroniza a memória RAM com os novos dados
+    @CachePut(value = "campaigns", key = "#id")
     public CampaignResponseDTO update(UUID id, CampaignRequestDTO dto) {
-        logger.info("Atualizando campanha ID: " + id);
+        Campaign campaign = repository.findByIdOrThrow(id);
         
-        // verifica se existe antes de atualizar
-        Campaign existing = repository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Campanha não encontrada com o ID: " + id));
+        Campaign atualizada = mapper.toEntity(dto);
+        atualizada.setId(campaign.getId()); 
+        atualizada.setCriadaEm(campaign.getCriadaEm()); 
+        atualizada.setStatus(campaign.getStatus()); 
         
-        // atualiza os dados pegando do Record (lembrar que: records usam .campo() em vez de getCampo())
-        existing.setTitulo(dto.titulo());
-        existing.setDescricao(dto.descricao());
-        existing.setSistema(dto.sistema());
-        existing.setCapacidade(new br.ifg.urt.shieldnoterpgbox.model.vo.CapacidadeJogadores(dto.maxJogadores(), dto.minJogadores()));
-        
-        Campaign atualizado = repository.save(existing);
-        
-        // Retorna a entidade atualizada como DTO
-        return mapper.toResponseDTO(atualizado);
+        atualizada = repository.save(atualizada);
+        return mapper.toResponseDTO(atualizada);
     }
 
-    @Transactional
+    // @CacheEvict: Remove a campanha da memória RAM para evitar dados fantasmas após exclusão
+    @CacheEvict(value = "campaigns", key = "#id")
     public void delete(UUID id) {
-        logger.info("Removendo campanha ID: " + id);
-        Campaign existing = repository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Campanha não encontrada com o ID: " + id));
-        repository.delete(existing);
+        Campaign campaign = repository.findByIdOrThrow(id);
+        repository.delete(campaign);
     }
-    
-    @Transactional
+
+    // @CacheEvict: Limpa o cache para que a alteração de status seja processada corretamente
+    @CacheEvict(value = "campaigns", key = "#id")
     public void pausar(UUID id) {
-        Campaign campaign = repository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Campanha não encontrada com o ID: " + id));
+        Campaign campaign = repository.findByIdOrThrow(id);
         campaign.pausar();
         repository.save(campaign);
     }
 
-    @Transactional
+    // @CacheEvict: O status voltou para ATIVA. Limpamos o cache e retornamos o DTO atualizado para o HATEOAS
+    @CacheEvict(value = "campaigns", key = "#id")
+    public CampaignResponseDTO reativar(UUID id) {
+        Campaign campaign = repository.findByIdOrThrow(id);
+        campaign.reativar(); // Aciona o método de negócio que colocamos na entidade
+        Campaign atualizada = repository.save(campaign);
+        return mapper.toResponseDTO(atualizada);
+    }
+
+    // @CacheEvict: Finaliza o ciclo de vida da campanha no banco
+    @CacheEvict(value = "campaigns", key = "#id")
     public void encerrar(UUID id) {
-        Campaign campaign = repository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Campanha não encontrada com o ID: " + id));
+        Campaign campaign = repository.findByIdOrThrow(id);
         campaign.encerrar();
         repository.save(campaign);
     }
-    
-    @Transactional
+
+    // @CacheEvict: Uma nova sessão altera o estado interno do agregado. Invalidamos o cache.
+    @CacheEvict(value = "campaigns", key = "#id")
     public UUID iniciarSessao(UUID id) {
-        logger.info("Iniciando uma nova sessão de jogo para a campanha ID: " + id);
-        
-        Campaign campaign = repository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Campanha não encontrada com o ID: " + id));
-                
-        // regra de negócio: impede iniciar sessão se a campanha não estiver ativa
-        if (campaign.getStatus() != br.ifg.urt.shieldnoterpgbox.enums.StatusEnum.ATIVA) {
-            throw new IllegalArgumentException("Não é possível iniciar uma sessão em uma campanha com status: " + campaign.getStatus());
-        }
-        
-        // Invoca o comportamento da entidade e retorna o UUID gerado
-        return campaign.iniciarSessao();
+        Campaign campaign = repository.findByIdOrThrow(id);
+        UUID sessionId = campaign.iniciarSessao();
+        repository.save(campaign);
+        return sessionId;
     }
 }
