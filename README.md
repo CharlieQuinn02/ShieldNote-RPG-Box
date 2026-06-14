@@ -136,7 +136,6 @@ A ShieldNote RPG-Box é estruturada como uma API REST modular, organizada em tor
 | **Cache** | Spring Cache + Caffeine |
 | **HATEOAS** | Spring HATEOAS |
 | **Documentação** | Springdoc OpenAPI 3.0 (Swagger UI) |
-| **Utilitários** | Lombok |
 | **Testes** | Spring Boot Test + JUnit 5 |
 
 ### Relacionamentos entre Entidades
