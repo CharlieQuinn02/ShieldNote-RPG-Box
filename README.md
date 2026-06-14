@@ -112,17 +112,16 @@ A ShieldNote RPG-Box é estruturada como uma API REST modular, organizada em tor
 | Entidade | Descrição |
 |---|---|
 | `USER` | Representa o usuário autenticado no sistema, seja ele mestre ou jogador. |
-| `GAME_SESSION` | Representa uma campanha ou sessão de jogo, agregando todos os elementos narrativos e mecânicos. |
-| `BASE_CHARACTER` | Entidade-base abstrata que centraliza os atributos compartilhados entre personagens jogáveis e NPCs. |
-| `PLAYER_CHARACTER` | Especialização de `BASE_CHARACTER` para personagens controlados pelos jogadores. |
-| `SESSION_ROSTER` | Gerencia o vínculo entre usuários/personagens e uma sessão, definindo papéis e ordem de iniciativa. |
-| `NPC` | Personagem Não Jogável gerenciado pelo mestre, com atributos e habilidades específicas. |
-| `MONSTER` | Entidade dedicada a criaturas de combate, contendo CR (Challenge Rating), atributos de batalha e tamanho. |
-| `SPELLCASTING` | Ficha de magias vinculada a um personagem, com controle de espaços e frequência de uso. |
+| `CAMPAIGN` | Representa uma campanha ou sessão de jogo, agregando todos os elementos narrativos e mecânicos. |
+| `NOTES` | Um campo que engloba anoteções geral feitas pelo mestre |
 | `DIFFICULTY_CALCULATOR` | Módulo de cálculo de dificuldade de encontros com base nos monstros e no nível do grupo. |
-| `DICE_ROLLER` | Módulo de rolagem de dados com suporte a modificadores, registro de críticos e falhas. |
-| `MONEY_CONVERTER` | Módulo de conversão entre os diferentes tipos de moedas do universo do jogo. |
-| `POST_IT` | Bloco de anotações rápidas vinculado à sessão, com campo de visibilidade (público/privado). |
+| `CHARACTER` | Entidade-base que centraliza os atributos compartilhados entre personagens jogáveis e não jogáveis, e monstros. |
+| `PLAYER_CHARACTER` | Especialização de `BASE_CHARACTER` para personagens controlados pelos jogadores. |
+| `NPC` | Especialização para Personagem Não Jogável gerenciado pelo mestre, com atributos e habilidades específicas. |
+| `MONSTER` | Especialização de entidade dedicada a criaturas de combate, contendo CR (Challenge Rating), atributos de batalha e tamanho. |
+| `SPELLS` | Entidade de magias, contendo informações individuais sobre cada magia, desde seus efeitos até seus custos |
+| `SPELLCASTING` | Ficha de magias vinculada a um personagem, com controle de espaços e frequência de uso. |
+| `SPELLSLOT` | Classe de controle de gastos de uso de magia, para personagens jogáveis |
 
 ### Stack Tecnológica
 
@@ -227,13 +226,15 @@ src/
             ├── assembler/       # Camada de geração de links
             ├── config/          # Configurações de segurança e Firebase
             ├── controller/      # Camada de entrada (endpoints REST)
-            ├── service/         # Camada de regras de negócio
-            ├── repository/      # Camada de acesso a dados (JPA)
-            ├── model/           # Entidades de domínio
-                └──vo/           # Value Objects (objetos imutáveis que representam conceitos do domínio)
-            └── dto/             # Objetos de transferência de dados
+            ├── dto/             # Objetos de transferência de dados
                 ├──request/      # Camada de entrada
                 └──response/     # Camada de saída
+            ├── exception/       # Camada de exceções
+            ├── mapper/          # Camada de conversão
+            ├── model/           # Entidades de domínio
+                └──vo/           # Value Objects (objetos imutáveis que representam conceitos do domínio)
+            ├── repository/      # Camada de acesso a dados (JPA)
+            └── service/         # Camada de regras de negócio
 ```
 
 ### Endpoints Principais
