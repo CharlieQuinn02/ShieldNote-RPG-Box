@@ -224,12 +224,16 @@ src/
 └── main/
     └── java/
         └── com.shieldnote.rpgbox/
+            ├── assembler/       # Camada de geração de links
             ├── config/          # Configurações de segurança e Firebase
             ├── controller/      # Camada de entrada (endpoints REST)
             ├── service/         # Camada de regras de negócio
             ├── repository/      # Camada de acesso a dados (JPA)
             ├── model/           # Entidades de domínio
+                └──vo/           # Value Objects (objetos imutáveis que representam conceitos do domínio)
             └── dto/             # Objetos de transferência de dados
+                ├──request/      # Camada de entrada
+                └──response/     # Camada de saída
 ```
 
 ### Endpoints Principais
