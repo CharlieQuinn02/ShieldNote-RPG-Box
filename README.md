@@ -96,7 +96,7 @@ A **ShieldNote RPG-Box** surge como resposta a esse problema: uma API REST desen
 
 > O DER apresentado abaixo descreve o modelo de dados relacional adotado para a persistência das informações da API, com as devidas chaves primárias (PK) e chaves estrangeiras (FK).
 
-![Project Screenshot](DIAGRAMA_SHIELDNOTE_WEB_II.png)
+![Project Screenshot](DER_API.png)
 
 &nbsp;
 
