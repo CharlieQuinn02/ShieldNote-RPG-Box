@@ -86,7 +86,7 @@ A **ShieldNote RPG-Box** surge como resposta a esse problema: uma API REST desen
 
 > O diagrama a seguir representa as entidades do sistema, seus atributos, métodos e os relacionamentos entre elas, incluindo associações, composições e heranças.
 
-<!-- 📌 INSERIR DIAGRAMA DE CLASSES AQUI -->
+![Project Screenshot](Diagrama_De_Classes_API.png)
 
 &nbsp;
 
